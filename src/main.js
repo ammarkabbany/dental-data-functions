@@ -11,7 +11,7 @@ export default async ({ req, res, log, error }) => {
   const users = new Users(client);
   const databases = new Databases(client)
 
-  const auth_token = req.headers['x-appwrite-auth-token'];
+  const auth_token = req.headers['Authorization'];
   const envAuthToken = process.env.APPWRITE_FUNCTION_AUTH_TOKEN
 
   try {
@@ -19,6 +19,8 @@ export default async ({ req, res, log, error }) => {
     // Log messages and errors to the Appwrite Console
     // These logs won't be seen by your end users
     log(`Total users: ${response.total}`);
+    log(envAuthToken)
+    log(auth_token)
   } catch(err) {
     error("Could not list users: " + err.message);
   }
