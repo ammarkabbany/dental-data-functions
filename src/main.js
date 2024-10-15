@@ -11,7 +11,7 @@ export default async ({ req, res, log, error }) => {
   const users = new Users(client);
   const databases = new Databases(client)
 
-  const auth_token = req.headers;
+  const auth_token = req.headers["authorization"];
   const envAuthToken = process.env.APPWRITE_FUNCTION_AUTH_TOKEN
 
   try {
