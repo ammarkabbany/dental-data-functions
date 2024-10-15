@@ -20,7 +20,7 @@ export default async ({ req, res, log, error }) => {
     return res.json({ cases: cases.total, doctors: doctors.total, teams: labs });
     } catch (e) {
       log(e);
-      return res.end()
+      return res.text("")
     }
   }
 
