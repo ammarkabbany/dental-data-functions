@@ -11,6 +11,9 @@ export default async ({ req, res, log, error }) => {
   const users = new Users(client);
   const databases = new Databases(client)
 
+  const auth_token = req.headers['x-appwrite-auth-token'];
+  const envAuthToken = process.env.APPWRITE_FUNCTION_AUTH_TOKEN
+
   try {
     const response = await users.list();
     // Log messages and errors to the Appwrite Console
@@ -28,8 +31,12 @@ export default async ({ req, res, log, error }) => {
   }
 
   if (req.path === "/total") {
-    const response = await databases.listDocuments("mega_dental_data", "66dda08500057cc4e21c", [Query.limit(1)]);
-    return res.json({ cases: response.total });
+    if (auth_token === envAuthToken) {
+      const response = await databases.listDocuments("mega_dental_data", "66dda08500057cc4e21c", [Query.limit(1)]);
+      return res.json({ cases: response.total });
+    } else {
+      return res.status(401).json({ error: "Invalid auth token", auth_token, envAuthToken });
+    }
   }
 
   return res.json({
