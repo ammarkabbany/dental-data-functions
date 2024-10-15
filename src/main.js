@@ -37,7 +37,7 @@ export default async ({ req, res, log, error }) => {
       const response = await databases.listDocuments("mega_dental_data", "66dda08500057cc4e21c", [Query.limit(1)]);
       return res.json({ cases: response.total });
     } else {
-      return res.status(401).json({ error: "Invalid auth token", auth_token, envAuthToken });
+      return res.json({ error: "Invalid auth token", auth_token, envAuthToken });
     }
   }
 
