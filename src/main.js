@@ -17,10 +17,10 @@ export default async ({ req, res, log, error }) => {
       const cases = await databases.listDocuments("mega_dental_data", "66dda08500057cc4e21c", [Query.limit(1), Query.select(["date"])]);
     const doctors = await databases.listDocuments("mega_dental_data", "66dc203400027b5e3c73", [Query.limit(1), Query.select(["$id"])]);
     const labs = (await teams.list()).total
-    return res.status(200).json({ cases: cases.total, doctors: doctors.total, teams: labs });
+    return res.json({ cases: cases.total, doctors: doctors.total, teams: labs });
     } catch (e) {
       log(e);
-      return res.status(404).end()
+      return res.end()
     }
   }
 
