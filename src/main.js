@@ -9,20 +9,43 @@ export default async ({ req, res, log, error }) => {
     .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     .setKey(req.headers['x-appwrite-key'] ?? '');
   const users = new Users(client);
-  const databases = new Databases(client)
+  const databases = new Databases(client);
   const teams = new Teams(client);
 
-  if (req.path === "/total") {
+  if (req.path === '/users') {
+    const { queries = [] } = req.body;
     try {
-      const cases = await databases.listDocuments("mega_dental_data", "66dda08500057cc4e21c", [Query.limit(1), Query.select(["date"])]);
-    const doctors = await databases.listDocuments("mega_dental_data", "66dc203400027b5e3c73", [Query.limit(1), Query.select(["$id"])]);
-    const labs = (await teams.list()).total
-    return res.json({ cases: cases.total, doctors: doctors.total, teams: labs });
+      const userList = await users.list(queries);
+      return res.json(userList);
     } catch (e) {
       log(e);
-      return res.text("")
+      return res.text('');
     }
   }
 
-  return res.text("")
+  if (req.path === '/total') {
+    try {
+      const cases = await databases.listDocuments(
+        'mega_dental_data',
+        '66dda08500057cc4e21c',
+        [Query.limit(1), Query.select(['date'])]
+      );
+      const doctors = await databases.listDocuments(
+        'mega_dental_data',
+        '66dc203400027b5e3c73',
+        [Query.limit(1), Query.select(['$id'])]
+      );
+      const labs = (await teams.list()).total;
+      return res.json({
+        cases: cases.total,
+        doctors: doctors.total,
+        teams: labs,
+      });
+    } catch (e) {
+      log(e);
+      return res.text('');
+    }
+  }
+
+  return res.text('');
 };
