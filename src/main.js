@@ -24,6 +24,7 @@ export default async ({ req, res, log, error }) => {
           const team = teamList.find(tt => tt.$id === membership.teamId)
           return { team, membership };
         })
+        log(user)
         return {
           ...user,
           team: team ? team : undefined,
@@ -31,6 +32,7 @@ export default async ({ req, res, log, error }) => {
           roles: membership? membership.roles : undefined,
         };
       })
+      log(finalList)
       return res.json({finalList, total: userList.total});
     } catch (e) {
       log(e);
