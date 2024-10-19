@@ -41,6 +41,7 @@ export default async ({ req, res, log, error }) => {
   
         return {
           ...user,
+          password: null,
           team: team ? team : undefined,
           membership: membership ? membership : undefined,
           roles: membership ? membership.roles : undefined,
