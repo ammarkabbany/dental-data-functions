@@ -29,11 +29,15 @@ export default async ({ req, res, log, error }) => {
               const team = teamList.find((tt) => tt.$id === membership.teamId);
               return { team, membership };
             }
+            return null; // Return null if no membership is found
           })
         );
   
-        // Filter out undefined memberships (if user is not part of a team)
-        const { membership, team } = resolvedMembership.find((res) => res);
+        // Find the first non-null membership
+        const result = resolvedMembership.find((res) => res !== null);
+  
+        const membership = result ? result.membership : undefined;
+        const team = result ? result.team : undefined;
   
         return {
           ...user,
@@ -45,10 +49,11 @@ export default async ({ req, res, log, error }) => {
   
       return res.json({ finalList, total: userList.total });
     } catch (e) {
-      console.error(e);
-      return res.text('');
+      log(e);
+      return res.text('An error occurred');
     }
-  }  
+  }
+  
 
   if (req.path === '/total') {
     try {
