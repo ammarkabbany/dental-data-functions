@@ -16,29 +16,39 @@ export default async ({ req, res, log, error }) => {
     const { queries = [] } = req.body;
     try {
       const userList = await users.list(queries);
-      const teamList = (await teams.list()).teams
-      const finalList = userList.users.map(async user => {
-        const {membership, team} = teamList.map(async t => {
-          const memberships = (await teams.listMemberships(t.$id)).memberships
-          const membership = memberships.find(m => m.userId === user.$id)
-          const team = teamList.find(tt => tt.$id === membership.teamId)
-          return { team, membership };
-        })
-        log(user)
+      const teamList = (await teams.list()).teams;
+  
+      // Map through users and resolve their teams and memberships
+      const finalList = await Promise.all(userList.users.map(async (user) => {
+        // Resolve team memberships for each user
+        const resolvedMembership = await Promise.all(
+          teamList.map(async (t) => {
+            const memberships = (await teams.listMemberships(t.$id)).memberships;
+            const membership = memberships.find((m) => m.userId === user.$id);
+            if (membership) {
+              const team = teamList.find((tt) => tt.$id === membership.teamId);
+              return { team, membership };
+            }
+          })
+        );
+  
+        // Filter out undefined memberships (if user is not part of a team)
+        const { membership, team } = resolvedMembership.find((res) => res);
+  
         return {
           ...user,
           team: team ? team : undefined,
-          membership: membership? membership : undefined,
-          roles: membership? membership.roles : undefined,
+          membership: membership ? membership : undefined,
+          roles: membership ? membership.roles : undefined,
         };
-      })
-      log(finalList)
-      return res.json({finalList, total: userList.total});
+      }));
+  
+      return res.json({ finalList, total: userList.total });
     } catch (e) {
-      log(e);
+      console.error(e);
       return res.text('');
     }
-  }
+  }  
 
   if (req.path === '/total') {
     try {
