@@ -31,7 +31,7 @@ export default async ({ req, res, log, error }) => {
           roles: membership? membership.roles : undefined,
         };
       })
-      return res.json({users, total: userList.total});
+      return res.json({finalList, total: userList.total});
     } catch (e) {
       log(e);
       return res.text('');
