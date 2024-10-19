@@ -68,10 +68,16 @@ export default async ({ req, res, log, error }) => {
         '66dc203400027b5e3c73',
         [Query.limit(1), Query.select(['$id'])]
       );
+      const materials = await databases.listDocuments(
+        'mega_dental_data',
+        '66dc297a002804d0dc8e',
+        [Query.limit(1), Query.select(['$id'])]
+      );
       const labs = (await teams.list()).total;
       return res.json({
         cases: cases.total,
         doctors: doctors.total,
+        materials: materials.total,
         teams: labs,
       });
     } catch (e) {
