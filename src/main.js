@@ -16,7 +16,18 @@ export default async ({ req, res, log, error }) => {
     const { queries = [] } = req.body;
     try {
       const userList = await users.list(queries);
-      return res.json(userList);
+      const teamList = (await teams.list()).teams
+      const teamMemberships = await teams.listMemberships()
+      const finalList = userList.users.map(user => {
+        const membership = teamMemberships.memberships.find(m => m.userId === user.$id);
+        const team = teamList.find(t => t.$id === membership.teamId)
+        return {
+          ...user,
+          team: team ? team : undefined,
+          membership: membership? membership : undefined,
+        };
+      })
+      return res.json({users, total: userList.total});
     } catch (e) {
       log(e);
       return res.text('');
