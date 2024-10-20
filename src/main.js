@@ -12,7 +12,7 @@ export default async ({ req, res, log, error }) => {
   const databases = new Databases(client);
   const teams = new Teams(client);
   if (req.path === "/user") {
-    const { userId } = req.body;
+    const { userId } = JSON.parse(req.body);
     if (!userId) {
       return res.json({ message: 'User ID is required' });
     }
