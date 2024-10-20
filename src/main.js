@@ -12,16 +12,24 @@ export default async ({ req, res, log, error }) => {
   const databases = new Databases(client);
   const teams = new Teams(client);
   if (req.path === "/user") {
-    if (!req.method === 'POST') {
-      return res.json({ message: 'Invalid method' });
-    }
     const { userId } = req.body;
     if (!userId) {
       return res.json({ message: 'User ID is required' });
     }
     try {
       const user = await users.get(userId);
-      return res.json(user)
+      const wantedUser = {
+        $id: user.$id,
+        name: user.name,
+        email: user.email,
+        emailVerification: user.emailVerification,
+        labels: user.labels,
+        prefs: user.prefs,
+        status: user.status,
+        $createdAt: user.$createdAt,
+        $updatedAt: user.$updatedAt,
+      }
+      return res.json(wantedUser)
     } catch (err) {
       log.error(err);
       return res.text(err.message)
