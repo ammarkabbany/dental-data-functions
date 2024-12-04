@@ -18,7 +18,8 @@ export default async ({ req, res, log, error }) => {
 
     // Validate payload
     if (!collectionId || !documents || !data) {
-      return error;
+      log(databaseId, collectionId, documents, data)
+      return res.json({ message: 'Invalid payload' });
     }
     try {
       const promises = documents.map((documentId) =>
