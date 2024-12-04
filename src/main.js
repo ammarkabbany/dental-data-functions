@@ -47,7 +47,7 @@ export default async ({ req, res, log, error }) => {
     }
     try {
       const promises = documents.map((documentId) =>
-        databases.documentDocument(databaseid, collectionid, documentId)
+        databases.deleteDocument(databaseid, collectionid, documentId)
       );
 
       // Wait for all updates to complete
