@@ -17,13 +17,13 @@ export default async ({ req, res, log, error }) => {
     const { documents, data } = JSON.parse(req.body);
 
     // Validate payload
-    // if (!collectionId || !documents || !data) {
+    if (!collectionid || !documents || !data) {
       log(databaseid, collectionid)
       return res.json({ message: 'Invalid payload' });
-    // }
+    }
     try {
       const promises = documents.map((documentId) =>
-        databases.updateDocument(databaseId, collectionId, documentId, data)
+        databases.updateDocument(databaseid, collectionid, documentId, data)
       );
 
       // Wait for all updates to complete
