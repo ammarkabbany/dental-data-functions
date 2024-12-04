@@ -11,6 +11,29 @@ export default async ({ req, res, log, error }) => {
   const users = new Users(client);
   const databases = new Databases(client);
   const teams = new Teams(client);
+
+  if (req.path === '/updatedocuments') {
+    const { databaseId, collectionId, documentIds, data } = req.payload;
+
+    // Validate payload
+    if (!collectionId || !documentIds || !data) {
+      return error;
+    }
+    try {
+      const promises = documentIds.map((documentId) =>
+        databases.updateDocument(databaseId, collectionId, documentId, data)
+      );
+
+      // Wait for all updates to complete
+      await Promise.all(promises);
+
+      return res.json({ success: true, message: "Documents updated successfully" });
+    } catch (error) {
+      console.error("Error updating documents:", error);
+      return res.json({ success: false, message: error.message }, 500);
+    }
+  }
+
   if (req.path === "/user") {
     const { userId } = JSON.parse(req.body);
     if (!userId) {
