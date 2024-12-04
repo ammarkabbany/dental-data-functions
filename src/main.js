@@ -13,7 +13,8 @@ export default async ({ req, res, log, error }) => {
   const teams = new Teams(client);
 
   if (req.path === '/updatedocuments') {
-    const { databaseId, collectionId } = JSON.parse(req.headers);
+    const databaseId = req.headers.get('databaseId')
+    const collectionId = req.headers.get('collectionId');
     const { documents, data } = JSON.parse(req.body);
 
     // Validate payload
