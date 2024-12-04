@@ -13,14 +13,14 @@ export default async ({ req, res, log, error }) => {
   const teams = new Teams(client);
 
   if (req.path === '/updatedocuments') {
-    const { databaseId, collectionId } = req.headers;
+    const { databaseId, collectionId } = JSON.parse(req.headers);
     const { documents, data } = JSON.parse(req.body);
 
     // Validate payload
-    if (!collectionId || !documents || !data) {
+    // if (!collectionId || !documents || !data) {
       log(databaseId, collectionId, documents, data)
       return res.json({ message: 'Invalid payload' });
-    }
+    // }
     try {
       const promises = documents.map((documentId) =>
         databases.updateDocument(databaseId, collectionId, documentId, data)
