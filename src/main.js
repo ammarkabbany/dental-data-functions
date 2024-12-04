@@ -36,6 +36,30 @@ export default async ({ req, res, log, error }) => {
     }
   }
 
+  if (req.path === '/deletedocuments') {
+    const { databaseid, collectionid } = req.headers
+    const { documents } = JSON.parse(req.body);
+
+    // Validate payload
+    if (!collectionid || !documents) {
+      log(databaseid, collectionid)
+      return res.json({ message: 'Invalid payload' });
+    }
+    try {
+      const promises = documents.map((documentId) =>
+        databases.documentDocument(databaseid, collectionid, documentId)
+      );
+
+      // Wait for all updates to complete
+      await Promise.all(promises);
+
+      return res.json({ success: true, message: "Documents deleted successfully" });
+    } catch (error) {
+      console.error("Error updating documents:", error);
+      return res.json({ success: false, message: error.message }, 500);
+    }
+  }
+
   if (req.path === "/user") {
     const { userId } = JSON.parse(req.body);
     if (!userId) {
