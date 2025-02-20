@@ -61,17 +61,16 @@ export default async ({ req, res, log, error }) => {
       log(databaseid, collectionid);
       return res.json({ message: 'Invalid payload' });
     }
-    log(process.env.DOCTORS_COLLECTION_ID)
     try {
       const promises = documents.map(async (documentId) => {
-        log(documentId)
         const document = await databases.getDocument(databaseid, collectionid, documentId);
         const doctor = await databases.getDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, documentId.doctorId)
-        log(doctor.$id)
   
         // Delete the document
+        log('Deleting document '+ document.$id)
         await databases.deleteDocument(databaseid, collectionid, documentId);
   
+        log('Document deleted')
         // Update the doctor
         if (doctor) {
           const doctorData = {
