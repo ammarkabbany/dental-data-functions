@@ -64,7 +64,7 @@ export default async ({ req, res, log, error }) => {
     try {
       const promises = documents.map(async (documentId) => {
         const document = await databases.getDocument(databaseid, collectionid, documentId);
-        const doctor = await document.getDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, documentId.doctorId)
+        const doctor = await databases.getDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, documentId.doctorId)
   
         // Delete the document
         await databases.deleteDocument(databaseid, collectionid, documentId);
