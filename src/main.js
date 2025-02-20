@@ -62,25 +62,42 @@ export default async ({ req, res, log, error }) => {
       return res.json({ message: 'Invalid payload' });
     }
     try {
+      const doctorUpdates = {};
+
       const promises = documents.map(async (documentId) => {
         const document = await databases.getDocument(databaseid, collectionid, documentId);
-        const doctor = await databases.getDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, document.doctorId)
-  
+        const doctorId = document.doctorId;
+      
         // Delete the document
         await databases.deleteDocument(databaseid, collectionid, documentId);
-  
-        // Update the doctor
-        if (doctor) {
-          const doctorData = {
-            due: Math.max((doctor.due || 0) - (document.due || 0), 0),
-            totalCases: Math.max(0, (doctor.totalCases || 0) - 1),
+      
+        // Prepare the doctor update if it doesn't exist yet
+        if (!doctorUpdates[doctorId]) {
+          doctorUpdates[doctorId] = {
+            due: 0,
+            totalCases: 0,
           };
-          await databases.updateDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, doctor.$id, doctorData);
         }
+      
+        // Accumulate the due and total cases for the doctor
+        doctorUpdates[doctorId].due += document.due || 0;
+        doctorUpdates[doctorId].totalCases += 1; // Increment for each document being deleted
       });
-  
+      
       // Wait for all deletions to complete
       await Promise.all(promises);
+      
+      // Now update each doctor with the accumulated values
+      for (const [doctorId, updateData] of Object.entries(doctorUpdates)) {
+        const doctor = await databases.getDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, doctorId);
+        if (doctor) {
+          const doctorData = {
+            due: Math.max((doctor.due || 0) - updateData.due, 0),
+            totalCases: Math.max(0, (doctor.totalCases || 0) - updateData.totalCases),
+          };
+          await databases.updateDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, doctorId, doctorData);
+        }
+      }      
   
       return res.json({ success: true, message: "Documents deleted successfully" });
     } catch (error) {
