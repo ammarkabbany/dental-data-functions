@@ -13,52 +13,81 @@ export default async ({ req, res, log, error }) => {
   const teams = new Teams(client);
 
   if (req.path === '/updatedocuments') {
-    const { databaseid, collectionid } = req.headers
+    const { databaseid, collectionid } = req.headers;
     const { documents, data } = JSON.parse(req.body);
-
+  
     // Validate payload
     if (!collectionid || !documents || !data) {
-      log(databaseid, collectionid)
+      log(databaseid, collectionid);
       return res.json({ message: 'Invalid payload' });
     }
     try {
-      const promises = documents.map((documentId) =>
-        databases.updateDocument(databaseid, collectionid, documentId, data)
-      );
-
+      const promises = documents.map(async (documentId) => {
+        const document = await databases.getDocument(databaseid, collectionid, documentId);
+        const doctorId = document.doctorId;
+        const teamId = document.teamId;
+  
+        // Update the document
+        await databases.updateDocument(databaseid, collectionid, documentId, data);
+  
+        const newDue = data.due;
+        const oldDue = _case.due || 0;
+        // Update the doctor
+        if (doctorId) {
+          const doctorData = {
+            due: Math.max((document.doctor.due || 0) - (data.due || 0), 0),
+            // totalCases: Math.max(0, (document.doctor.totalCases || 0) - 1),
+          };
+          await databases.updateDocument(databaseid, DOCTORS_COLLECTION_ID, doctorId, doctorData);
+        }
+      });
+  
       // Wait for all updates to complete
       await Promise.all(promises);
-
+  
       return res.json({ success: true, message: "Documents updated successfully" });
     } catch (error) {
       console.error("Error updating documents:", error);
       return res.json({ success: false, message: error.message }, 500);
     }
   }
-
+  
   if (req.path === '/deletedocuments') {
-    const { databaseid, collectionid } = req.headers
+    const { databaseid, collectionid } = req.headers;
     const { documents } = JSON.parse(req.body);
-
+  
     // Validate payload
     if (!collectionid || !documents) {
-      log(databaseid, collectionid)
+      log(databaseid, collectionid);
       return res.json({ message: 'Invalid payload' });
     }
     try {
-      const promises = documents.map((documentId) =>
-        databases.deleteDocument(databaseid, collectionid, documentId)
-      );
-
-      // Wait for all updates to complete
+      const promises = documents.map(async (documentId) => {
+        const document = await databases.getDocument(databaseid, collectionid, documentId);
+        const doctor = await document.getDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, documentId.doctorId)
+  
+        // Delete the document
+        await databases.deleteDocument(databaseid, collectionid, documentId);
+  
+        // Update the doctor
+        if (doctor) {
+          const doctorData = {
+            due: Math.max((doctor.due || 0) - (document.due || 0), 0),
+            totalCases: Math.max(0, (document.doctor.totalCases || 0) - 1),
+          };
+          await databases.updateDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, doctor.$id, doctorData);
+        }
+      });
+  
+      // Wait for all deletions to complete
       await Promise.all(promises);
-
+  
       return res.json({ success: true, message: "Documents deleted successfully" });
     } catch (error) {
-      console.error("Error updating documents:", error);
       return res.json({ success: false, message: error.message }, 500);
     }
   }
+  
 
   if (req.path === "/user") {
     const { userId } = JSON.parse(req.body);
