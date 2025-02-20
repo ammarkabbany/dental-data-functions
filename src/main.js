@@ -73,7 +73,7 @@ export default async ({ req, res, log, error }) => {
         if (doctor) {
           const doctorData = {
             due: Math.max((doctor.due || 0) - (document.due || 0), 0),
-            totalCases: Math.max(0, (document.doctor.totalCases || 0) - 1),
+            totalCases: Math.max(0, (doctor.totalCases || 0) - 1),
           };
           await databases.updateDocument(databaseid, process.env.DOCTORS_COLLECTION_ID, doctor.$id, doctorData);
         }
