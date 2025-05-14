@@ -60,7 +60,7 @@ export default async ({ req, res, log, error }) => {
       const doctorPayments = payments.documents.filter((p) => p.doctorId === doc.$id);
       const totalDue = doctorCases.reduce((acc, c) => acc + c.due, 0) - doctorPayments.reduce((acc, p) => acc + p.amount, 0);
       const totalCases = doctorCases.length;
-      log(`${doc.toString()}`);
+      log(doc.toString());
       doctorDues.push({
         $id: doc.$id,
         name: doc.name,
