@@ -47,7 +47,7 @@ export default async ({ req, res, log, error }) => {
     ]);
 
     // Record<string, { name: string; totalDue: number; caseIds: string[] }>
-    const doctorDues = {};
+    const doctorDues = [];
 
     for (const doc of doctors.documents) {
       const payments = await databases.listDocuments(DB_ID, COLLECTION_PAYMENTS, [
@@ -58,11 +58,12 @@ export default async ({ req, res, log, error }) => {
       const doctorPayments = payments.documents.filter((p) => p.doctorId === doc.$id);
       const totalDue = doctorCases.reduce((acc, c) => acc + c.due, 0) - doctorPayments.reduce((acc, p) => acc + p.amount, 0);
       const totalCases = doctorCases.length;
-      doctorDues[doc.$id] = {
-        name: doc.name || 'Unnamed Doctor',
-        totalDue,
-        totalCases,
-      };
+      doctorDues.push({
+        $id: doc.$id,
+        name: doc.name,
+        due: totalDue,
+        totalCases: totalCases,
+      });
     }
 
     return res.json({
