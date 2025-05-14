@@ -57,11 +57,11 @@ export default async ({ req, res, log, error }) => {
       const doctorCases = cases.documents.filter((c) => c.doctorId === doc.$id);
       const doctorPayments = payments.documents.filter((p) => p.doctorId === doc.$id);
       const totalDue = doctorCases.reduce((acc, c) => acc + c.due, 0) - doctorPayments.reduce((acc, p) => acc + p.amount, 0);
-      const caseIds = doctorCases.map((c) => c.$id);
+      const totalCases = doctorCases.length;
       doctorDues[doc.$id] = {
         name: doc.name || 'Unnamed Doctor',
         totalDue,
-        caseIds,
+        totalCases,
       };
     }
 
