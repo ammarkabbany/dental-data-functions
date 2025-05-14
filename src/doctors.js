@@ -35,7 +35,6 @@ export default async ({ req, res, log, error }) => {
     // Fetch all doctors in the team
     const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
       Query.equal('teamId', teamId),
-      Query.select('$id', 'name'),
       Query.limit(1000),
     ]);
 
@@ -60,7 +59,7 @@ export default async ({ req, res, log, error }) => {
       const doctorPayments = payments.documents.filter((p) => p.doctorId === doc.$id);
       const totalDue = doctorCases.reduce((acc, c) => acc + c.due, 0) - doctorPayments.reduce((acc, p) => acc + p.amount, 0);
       const totalCases = doctorCases.length;
-      log(doc.toString());
+      log(doc.name);
       doctorDues.push({
         $id: doc.$id,
         name: doc.name,
