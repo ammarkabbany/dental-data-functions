@@ -26,7 +26,7 @@ export default async ({ req, res, log, error }) => {
   //   amount: number;
   // }
 
-  const { teamId, due = false } = req.query;
+  const { teamId } = req.query;
   if (!teamId) {
     return res.json({ success: false, message: 'Missing teamId' });
   }
@@ -52,13 +52,13 @@ export default async ({ req, res, log, error }) => {
     const doctorDues = [];
 
     for (const doc of doctors.documents) {
-      const payments = due && await databases.listDocuments(DB_ID, COLLECTION_PAYMENTS, [
+      const payments = await databases.listDocuments(DB_ID, COLLECTION_PAYMENTS, [
         Query.equal('doctorId', doc.$id),
         Query.limit(10000),
       ]);
       const doctorCases = cases.documents.filter((c) => c.doctorId === doc.$id);
-      const doctorPayments = due ? payments.documents.filter((p) => p.doctorId === doc.$id) : []
-      const totalDue = due ? doctorCases.reduce((acc, c) => acc + c.due, 0) - doctorPayments.reduce((acc, p) => acc + p.amount, 0) :0;
+      const doctorPayments = payments.documents.filter((p) => p.doctorId === doc.$id);
+      const totalDue = doctorCases.reduce((acc, c) => acc + c.due, 0) - doctorPayments.reduce((acc, p) => acc + p.amount, 0);
       const totalCases = doctorCases.length;
       doctorDues.push({
         $id: doc.$id,
