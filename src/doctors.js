@@ -33,13 +33,13 @@ export default async ({ req, res, log, error }) => {
 
   try {
     // Fetch all doctors in the team
-    const doctors = await databases.listDocuments<Doctor>(DB_ID, COLLECTION_DOCTORS, [
+    const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
       Query.equal('teamId', teamId),
       Query.limit(1000),
     ]);
 
     // Fetch all un-invoiced cases in the team
-    const cases = await databases.listDocuments<Case>(DB_ID, COLLECTION_CASES, [
+    const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
       Query.equal('teamId', teamId),
       Query.equal('invoice', false),
       // Query.equal('status', 'active'),
@@ -47,7 +47,7 @@ export default async ({ req, res, log, error }) => {
     ]);
 
     // Fetch all payments in the team
-    const payments = await databases.listDocuments<Payment>(DB_ID, COLLECTION_PAYMENTS, [
+    const payments = await databases.listDocuments(DB_ID, COLLECTION_PAYMENTS, [
       Query.equal('teamId', teamId),
       Query.limit(10000),
     ]);
