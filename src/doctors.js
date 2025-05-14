@@ -1,30 +1,30 @@
 import { Client, Databases, ID, Models, Permission, Query, Role } from 'node-appwrite';
 
-export default async ({ req, res, log, error }: any) => {
+export default async ({ req, res, log, error }) => {
   const client = new Client()
-    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT!)
-    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID!)
+    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
+    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     .setKey(req.headers['x-appwrite-key'] ?? '');
 
   const databases = new Databases(client);
-  const DB_ID = process.env.DATABASE_ID!;
-  const COLLECTION_CASES = process.env.CASES_COLLECTION_ID!;
-  const COLLECTION_DOCTORS = process.env.DOCTORS_COLLECTION_ID!;
-  const COLLECTION_PAYMENTS = process.env.PAYMENTS_COLLECTION_ID!;
+  const DB_ID = process.env.DATABASE_ID;
+  const COLLECTION_CASES = process.env.CASES_COLLECTION_ID;
+  const COLLECTION_DOCTORS = process.env.DOCTORS_COLLECTION_ID;
+  const COLLECTION_PAYMENTS = process.env.PAYMENTS_COLLECTION_ID;
 
-  interface Doctor extends Models.Document {
-    name: string;
-  }
+  // interface Doctor extends Models.Document {
+  //   name: string;
+  // }
 
-  interface Case extends Models.Document {
-    doctorId: string;
-    due: number;
-    invoice: boolean;
-  }
-  interface Payment extends Models.Document {
-    doctorId: string;
-    amount: number;
-  }
+  // interface Case extends Models.Document {
+  //   doctorId: string;
+  //   due: number;
+  //   invoice: boolean;
+  // }
+  // interface Payment extends Models.Document {
+  //   doctorId: string;
+  //   amount: number;
+  // }
 
   const { teamId } = req.query;
   if (!teamId) {
@@ -52,7 +52,8 @@ export default async ({ req, res, log, error }: any) => {
       Query.limit(10000),
     ]);
 
-    const doctorDues: Record<string, { name: string; totalDue: number; caseIds: string[] }> = {};
+    // Record<string, { name: string; totalDue: number; caseIds: string[] }>
+    const doctorDues = {};
 
     for (const doc of doctors.documents) {
       const doctorCases = cases.documents.filter((c) => c.doctorId === doc.$id);
@@ -70,7 +71,7 @@ export default async ({ req, res, log, error }: any) => {
       success: true,
       data: doctorDues,
     });
-  } catch (err: any) {
+  } catch (err) {
     error(err.message);
     return res.json({ success: false, message: 'Server error' });
   }
