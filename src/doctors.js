@@ -49,13 +49,12 @@ export default async ({ req, res, log, error }) => {
       );
       const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
         Query.equal('teamId', teamId),
-        Query.equal('invoice', false),
+        // Query.equal('invoice', false),
         Query.equal('doctorId', doc.$id),
-        Query.select('$id', 'doctorId', 'due'),
         // Query.equal('status', 'active'),
         Query.limit(10000),
       ]);
-      // const doctorCases = cases.documents.filter((c) => c.doctorId === doc.$id);
+      const doctorCases = cases.documents.filter((c) => c.invoice === false);
       const doctorPayments = payments.documents.filter(
         (p) => p.doctorId === doc.$id
       );
@@ -68,6 +67,7 @@ export default async ({ req, res, log, error }) => {
         name: doc.name,
         due: totalDue,
         totalCases: totalCases,
+        uninvoicedCases: doctorCases.length,
       });
     }
 
