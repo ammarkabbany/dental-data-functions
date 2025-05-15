@@ -31,6 +31,8 @@ export default async ({ req, res, log, error }) => {
     return res.json({ success: false, message: 'Missing teamId' });
   }
 
+  log(req.headers)
+
   try {
     // Fetch all doctors in the team
     const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
@@ -48,13 +50,14 @@ export default async ({ req, res, log, error }) => {
         [Query.equal('doctorId', doc.$id), Query.limit(10000)]
       );
       const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
-        Query.equal('teamId', teamId),
+        // Query.equal('teamId', teamId),
         // Query.equal('invoice', false),
         Query.equal('doctorId', doc.$id),
         // Query.equal('status', 'active'),
         Query.limit(10000),
       ]);
-      const doctorCases = cases.documents.filter((c) => c.invoice === false);
+      const unpaidCases = cases.documents.filter((c) => !c.invoice);
+      const paidCases = cases.documents.filter((c) => c.invoice);
       const doctorPayments = payments.documents.filter(
         (p) => p.doctorId === doc.$id
       );
@@ -67,7 +70,8 @@ export default async ({ req, res, log, error }) => {
         name: doc.name,
         due: Math.max(totalDue, 0),
         totalCases: totalCases,
-        uninvoicedCases: doctorCases.length,
+        unpaidCases: unpaidCases.length,
+        paidCases: paidCases.length,
       });
     }
 
