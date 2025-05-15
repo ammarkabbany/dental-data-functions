@@ -65,7 +65,7 @@ export default async ({ req, res, log, error }) => {
       doctorDues.push({
         $id: doc.$id,
         name: doc.name,
-        due: totalDue,
+        due: Math.max(totalDue, 0),
         totalCases: totalCases,
         uninvoicedCases: doctorCases.length,
       });
