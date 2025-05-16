@@ -44,7 +44,7 @@ export default async ({ req, res, log, error }) => {
     ]);
 
     const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
-      // Query.equal('teamId', teamId),
+      Query.equal('teamId', teamId),
       // Query.equal('doctorId', doc.$id),
       Query.select([
         'doctorId',
