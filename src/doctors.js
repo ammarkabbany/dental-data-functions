@@ -66,8 +66,8 @@ export default async ({ req, res, log, error }) => {
       //   [Query.equal('doctorId', doc.$id), Query.limit(10000), Query.select(['amount', 'doctorId'])],
       // );
       const doctorCases = cases.documents.filter((c) => c.doctorId === doc.$id);
-      const unpaidCases = doctorCases.documents.filter((c) => !c.invoice);
-      const paidCases = doctorCases.documents.filter((c) => c.invoice);
+      const unpaidCases = doctorCases.filter((c) => !c.invoice);
+      const paidCases = doctorCases.filter((c) => c.invoice);
       // const doctorPayments = payments.documents.filter(
       //   (p) => p.doctorId === doc.$id
       // );
