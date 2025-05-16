@@ -43,6 +43,19 @@ export default async ({ req, res, log, error }) => {
       Query.limit(1000),
     ]);
 
+    const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
+      // Query.equal('teamId', teamId),
+      // Query.equal('doctorId', doc.$id),
+      Query.select([
+        'doctorId',
+        'due',
+        'invoice',
+        'teamId',
+      ]),
+      // Query.equal('status', 'active'),
+      Query.limit(10000),
+    ]);
+
     // Record<string, { name: string; totalDue: number; caseIds: string[] }>
     const doctorDues = [];
 
@@ -52,27 +65,16 @@ export default async ({ req, res, log, error }) => {
       //   COLLECTION_PAYMENTS,
       //   [Query.equal('doctorId', doc.$id), Query.limit(10000), Query.select(['amount', 'doctorId'])],
       // );
-      const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
-        // Query.equal('teamId', teamId),
-        Query.equal('doctorId', doc.$id),
-        Query.select([
-          'doctorId',
-          'due',
-          'invoice',
-          'teamId',
-        ]),
-        // Query.equal('status', 'active'),
-        Query.limit(10000),
-      ]);
-      const unpaidCases = cases.documents.filter((c) => !c.invoice);
-      const paidCases = cases.documents.filter((c) => c.invoice);
+      const doctorCases = cases.documents.filter((c) => c.doctorId === doc.$id);
+      const unpaidCases = doctorCases.documents.filter((c) => !c.invoice);
+      const paidCases = doctorCases.documents.filter((c) => c.invoice);
       // const doctorPayments = payments.documents.filter(
       //   (p) => p.doctorId === doc.$id
       // );
       // const totalDue =
       //   cases.documents.reduce((acc, c) => acc + c.due, 0) -
       //   doctorPayments.reduce((acc, p) => acc + p.amount, 0);
-      const totalCases = cases.total;
+      const totalCases = doctorCases.length;
       doctorDues.push({
         $id: doc.$id,
         name: doc.name,
