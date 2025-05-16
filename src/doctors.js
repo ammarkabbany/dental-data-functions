@@ -60,8 +60,6 @@ export default async ({ req, res, log, error }) => {
           'due',
           'invoice',
           'teamId',
-          'createdAt',
-          'updatedAt',
         ]),
         // Query.equal('status', 'active'),
         Query.limit(10000),
