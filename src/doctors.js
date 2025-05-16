@@ -47,11 +47,11 @@ export default async ({ req, res, log, error }) => {
     const doctorDues = [];
 
     for (const doc of doctors.documents) {
-      const payments = await databases.listDocuments(
-        DB_ID,
-        COLLECTION_PAYMENTS,
-        [Query.equal('doctorId', doc.$id), Query.limit(10000), Query.select(['amount', 'doctorId'])],
-      );
+      // const payments = await databases.listDocuments(
+      //   DB_ID,
+      //   COLLECTION_PAYMENTS,
+      //   [Query.equal('doctorId', doc.$id), Query.limit(10000), Query.select(['amount', 'doctorId'])],
+      // );
       const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
         // Query.equal('teamId', teamId),
         Query.equal('doctorId', doc.$id),
@@ -66,17 +66,18 @@ export default async ({ req, res, log, error }) => {
       ]);
       const unpaidCases = cases.documents.filter((c) => !c.invoice);
       const paidCases = cases.documents.filter((c) => c.invoice);
-      const doctorPayments = payments.documents.filter(
-        (p) => p.doctorId === doc.$id
-      );
-      const totalDue =
-        cases.documents.reduce((acc, c) => acc + c.due, 0) -
-        doctorPayments.reduce((acc, p) => acc + p.amount, 0);
+      // const doctorPayments = payments.documents.filter(
+      //   (p) => p.doctorId === doc.$id
+      // );
+      // const totalDue =
+      //   cases.documents.reduce((acc, c) => acc + c.due, 0) -
+      //   doctorPayments.reduce((acc, p) => acc + p.amount, 0);
       const totalCases = cases.total;
       doctorDues.push({
         $id: doc.$id,
         name: doc.name,
-        due: Math.max(totalDue, 0),
+        // due: Math.max(totalDue, 0),
+        due: 0,
         totalCases: totalCases,
         unpaidCases: unpaidCases.length,
         paidCases: paidCases.length,
