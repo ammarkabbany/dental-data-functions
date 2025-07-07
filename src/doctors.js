@@ -56,10 +56,24 @@ export default async ({ req, res, log, error }) => {
     const case_ = JSON.parse(req.body);
     // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
-    const doctorDue = doctor.due || 0 + case_.due || 0;
+    const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
-      due: doctorDue,
+      due: doctorDue || 0,
+      totalCases: doctor.totalCases || 0 + 1,
     });
+    return res.json({ success: true, message: 'Doctor updated' });
+  }
+  // When case is updated:
+  if (headers.get('x-appwrite-event').includes(COLLECTION_CASES) && headers.get('x-appwrite-event').endsWith('update')) {
+    const case_ = JSON.parse(req.body);
+    // TODO: update the doctor's due
+    const oldCase = await databases.getDocument(DB_ID, COLLECTION_CASES, case_.$id);
+    log(JSON.stringify(case_, oldCase))
+    // const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
+    // const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
+    // await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
+    //   due: doctorDue || 0,
+    // });
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When new payment is created:
@@ -67,9 +81,9 @@ export default async ({ req, res, log, error }) => {
     const payment = JSON.parse(req.body);
     // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, payment.doctorId);
-    const doctorDue = doctor.due || 0 + payment.amount || 0;
+    const doctorDue = Math.max(doctor.due || 0 - payment.amount, 0);
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
-      due: doctorDue,
+      due: doctorDue || 0,
     });
     return res.json({ success: true, message: 'Doctor updated' });
   }
