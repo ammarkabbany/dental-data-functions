@@ -31,6 +31,8 @@ export default async ({ req, res, log, error }) => {
     return res.json({ success: false, message: 'Missing teamId' });
   }
 
+  return res.json({ headers: req.headers, body: req.body, query: req.query })
+
   try {
     // Fetch all doctors in the team
     const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
