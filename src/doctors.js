@@ -27,9 +27,9 @@ export default async ({ req, res, log, error }) => {
   // }
 
   const { teamId } = req.query;
-  if (!teamId) {
-    return res.json({ success: false, message: 'Missing teamId' });
-  }
+  // if (!teamId) {
+  //   return res.json({ success: false, message: 'Missing teamId' });
+  // }
 
   return res.json({ headers: req.headers, body: req.body, query: req.query })
 
