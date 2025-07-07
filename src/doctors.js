@@ -12,27 +12,65 @@ export default async ({ req, res, log, error }) => {
   const COLLECTION_DOCTORS = process.env.DOCTORS_COLLECTION_ID;
   const COLLECTION_PAYMENTS = process.env.PAYMENTS_COLLECTION_ID;
 
-  // interface Doctor extends Models.Document {
-  //   name: string;
-  // }
-
-  // interface Case extends Models.Document {
-  //   doctorId: string;
-  //   due: number;
-  //   invoice: boolean;
-  // }
-  // interface Payment extends Models.Document {
-  //   doctorId: string;
-  //   amount: number;
-  // }
-
   const { teamId } = req.query;
   // if (!teamId) {
   //   return res.json({ success: false, message: 'Missing teamId' });
   // }
 
+  if (req.path === "/all") {
+    const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
+      Query.limit(1000),
+    ])
+    for (const doc of doctors.documents) {
+      const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
+        Query.equal('doctorId', doc.$id),
+        Query.limit(10000),
+      ]);
+      const payments = await databases.listDocuments(DB_ID, COLLECTION_PAYMENTS, [
+        Query.equal('doctorId', doc.$id),
+        Query.limit(10000),
+      ]);
+      const totalDue = cases.documents.reduce((acc, c) => acc + c.due, 0) - payments.documents.reduce((acc, p) => acc + p.amount, 0);
+      const totalCases = cases.documents.length;
+      // const unpaidCases = cases.documents.filter((c) =>!c.invoice).length;
+      // const paidCases = cases.documents.filter((c) => c.invoice).length;
+      await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doc.$id, {
+        totalCases: totalCases,
+        // unpaidCases: unpaidCases,
+        // paidCases: paidCases,
+        due: totalDue,
+      });
+    }
+    return res.json({ success: true, message: 'All doctors updated' });
+  }
+
+  // If the event is update, body = updated case
+  // If the event is create, body = new case
+
   log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
-  return res.json({ headers: req.headers, body: req.body, query: req.query })
+
+  // When new case is created:
+  if (headers.get('x-appwrite-event').includes(COLLECTION_CASES) && headers.get('x-appwrite-event').endsWith('create')) {
+    const case_ = JSON.parse(req.body);
+    // TODO: update the doctor's due
+    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
+    const doctorDue = doctor.due + case_.due;
+    await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
+      due: doctorDue,
+    });
+    return res.json({ success: true, message: 'Doctor updated' });
+  }
+  // When new payment is created:
+  if (headers.get('x-appwrite-event').includes(COLLECTION_PAYMENTS) && headers.get('x-appwrite-event').endsWith('create')) {
+    const payment = JSON.parse(req.body);
+    // TODO: update the doctor's due
+    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, payment.doctorId);
+    const doctorDue = doctor.due + payment.amount;
+    await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
+      due: doctorDue,
+    });
+    return res.json({ success: true, message: 'Doctor updated' });
+  }
 
   try {
     // Fetch all doctors in the team
