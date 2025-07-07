@@ -30,7 +30,7 @@ export default async ({ req, res, log, error }) => {
         Query.equal('doctorId', doc.$id),
         Query.limit(10000),
       ]);
-      const totalDue = cases.documents.reduce((acc, c) => acc + c.due, 0) - payments.documents.reduce((acc, p) => acc + p.amount, 0);
+      const totalDue = cases.documents.reduce((acc, c) => acc + c.due || 0, 0) - payments.documents.reduce((acc, p) => acc + p.amount || 0, 0);
       const totalCases = cases.documents.length;
       // const unpaidCases = cases.documents.filter((c) =>!c.invoice).length;
       // const paidCases = cases.documents.filter((c) => c.invoice).length;
@@ -54,7 +54,7 @@ export default async ({ req, res, log, error }) => {
     const case_ = JSON.parse(req.body);
     // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
-    const doctorDue = doctor.due + case_.due;
+    const doctorDue = doctor.due || 0 + case_.due || 0;
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
       due: doctorDue,
     });
@@ -65,7 +65,7 @@ export default async ({ req, res, log, error }) => {
     const payment = JSON.parse(req.body);
     // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, payment.doctorId);
-    const doctorDue = doctor.due + payment.amount;
+    const doctorDue = doctor.due || 0 + payment.amount || 0;
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
       due: doctorDue,
     });
