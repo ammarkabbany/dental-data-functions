@@ -30,7 +30,9 @@ export default async ({ req, res, log, error }) => {
         Query.equal('doctorId', doc.$id),
         Query.limit(10000),
       ]);
-      const totalDue = cases.documents.reduce((acc, c) => acc + c.due || 0, 0) - payments.documents.reduce((acc, p) => acc + p.amount || 0, 0);
+      const casesTotal = cases.documents.reduce((acc, c) => acc + (c.due || 0), 0);
+      const paymentsTotal = payments.documents.reduce((acc, p) => acc + (p.amount || 0), 0);
+      const totalDue = Math.max(0, casesTotal - paymentsTotal);
       const totalCases = cases.documents.length;
       // const unpaidCases = cases.documents.filter((c) =>!c.invoice).length;
       // const paidCases = cases.documents.filter((c) => c.invoice).length;
@@ -38,7 +40,7 @@ export default async ({ req, res, log, error }) => {
         totalCases: totalCases,
         // unpaidCases: unpaidCases,
         // paidCases: paidCases,
-        due: totalDue,
+        due: totalDue || 0,
       });
     }
     return res.json({ success: true, message: 'All doctors updated' });
