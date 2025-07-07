@@ -52,7 +52,7 @@ export default async ({ req, res, log, error }) => {
   log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
 
   // When new case is created:
-  if (headers.get('x-appwrite-event').includes(COLLECTION_CASES) && headers.get('x-appwrite-event').endsWith('create')) {
+  if (req.headers.get('x-appwrite-event').includes(COLLECTION_CASES) && req.headers.get('x-appwrite-event').endsWith('create')) {
     const case_ = JSON.parse(req.body);
     // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
@@ -64,7 +64,7 @@ export default async ({ req, res, log, error }) => {
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When case is updated:
-  if (headers.get('x-appwrite-event').includes(COLLECTION_CASES) && headers.get('x-appwrite-event').endsWith('update')) {
+  if (req.headers.get('x-appwrite-event').includes(COLLECTION_CASES) && req.headers.get('x-appwrite-event').endsWith('update')) {
     const case_ = JSON.parse(req.body);
     // TODO: update the doctor's due
     const oldCase = await databases.getDocument(DB_ID, COLLECTION_CASES, case_.$id);
@@ -77,7 +77,7 @@ export default async ({ req, res, log, error }) => {
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When new payment is created:
-  if (headers.get('x-appwrite-event').includes(COLLECTION_PAYMENTS) && headers.get('x-appwrite-event').endsWith('create')) {
+  if (req.headers.get('x-appwrite-event').includes(COLLECTION_PAYMENTS) && req.headers.get('x-appwrite-event').endsWith('create')) {
     const payment = JSON.parse(req.body);
     // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, payment.doctorId);
