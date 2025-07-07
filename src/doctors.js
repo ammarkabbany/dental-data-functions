@@ -31,6 +31,7 @@ export default async ({ req, res, log, error }) => {
   //   return res.json({ success: false, message: 'Missing teamId' });
   // }
 
+  log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
   return res.json({ headers: req.headers, body: req.body, query: req.query })
 
   try {
