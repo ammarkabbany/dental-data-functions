@@ -58,7 +58,8 @@ export default async ({ req, res, log, error }) => {
     // // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
     const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
-    log("doctorDue: " + doctorDue);
+    log(case_)
+    log(doctor.totalCases);
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
       due: doctorDue || 0,
       totalCases: doctor.totalCases || 0 + 1,
