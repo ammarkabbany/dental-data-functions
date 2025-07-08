@@ -49,7 +49,7 @@ export default async ({ req, res, log, error }) => {
   // If the event is update, body = updated case
   // If the event is create, body = new case
 
-  log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
+  // log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
 
   // When new case is created:
   if (req.headers['x-appwrite-event'].includes(COLLECTION_CASES) && req.headers['x-appwrite-event'].endsWith('create')) {
@@ -58,6 +58,7 @@ export default async ({ req, res, log, error }) => {
     // // TODO: update the doctor's due
     const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
     const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
+    log("doctorDue: " + doctorDue);
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
       due: doctorDue || 0,
       totalCases: doctor.totalCases || 0 + 1,
