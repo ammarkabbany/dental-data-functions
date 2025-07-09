@@ -18,6 +18,7 @@ export default async ({ req, res, log, error }) => {
   // }
 
   if (req.path === "/all") {
+    log('Updating all doctors')
     const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
       Query.limit(1000),
     ])
