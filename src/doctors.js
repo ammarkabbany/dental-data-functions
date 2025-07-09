@@ -65,19 +65,27 @@ export default async ({ req, res, log, error }) => {
     req.headers['x-appwrite-event'].endsWith('create')
   ) {
     const case_ = req.body;
+    log('Case creation event received:', { caseId: case_.$id, doctorId: case_.doctorId });
 
-    // // TODO: update the doctor's due
-    const doctor = await databases.getDocument(
-      DB_ID,
-      COLLECTION_DOCTORS,
-      case_.doctorId
-    );
-    const doctorDue = doctor.due || 0;
-    const totalCases = doctor.totalCases || 0;
-    await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
+    // Get initial doctor state
+    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
+    log('Initial doctor state:', { doctorId: doctor.$id, due: doctor.due, totalCases: doctor.totalCases });
+
+    const doctorDue = doctor.due || 0
+    const totalCases = doctor.totalCases || 0
+
+    // Log the update we're about to make
+    const updateData = {
       due: Math.max(doctorDue + case_.due, 0),
       totalCases: totalCases + 1,
-    });
+    };
+    log('Updating doctor with:', updateData);
+
+    await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, updateData);
+
+    // Verify the update
+    const updatedDoctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id);
+    log('Doctor state after update:', { doctorId: doctor.$id, due: updatedDoctor.due, totalCases: updatedDoctor.totalCases });
     log('Before update:', {
       doctorId: doctor.$id,
       currentTotalCases: totalCases,
