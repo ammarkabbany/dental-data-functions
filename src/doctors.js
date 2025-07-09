@@ -140,15 +140,14 @@ export default async ({ req, res, log, error }) => {
 
     // Get all affected doctors first
     const uniqueDoctorIds = [...new Set(changes.map(change => change.doctorId))];
-    const doctors = await Promise.all(
-      uniqueDoctorIds.map(id => 
-        databases.getDocument(DB_ID, COLLECTION_DOCTORS, id)
-      )
-    );
+    const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
+      Query.equal('$id', uniqueDoctorIds),
+      Query.limit(1000),
+    ]);
 
     // Calculate updates for each doctor
     const updates = uniqueDoctorIds.map(doctorId => {
-      const doctor = doctors.find(d => d.$id === doctorId);
+      const doctor = doctors.documents.find(d => d.$id === doctorId);
       const doctorChanges = changes.filter(c => c.doctorId === doctorId);
       
       const totalAmountReduction = doctorChanges.reduce((sum, change) => sum + change.amount, 0);
@@ -156,6 +155,8 @@ export default async ({ req, res, log, error }) => {
 
       return {
         $id: doctorId,
+        name: doctor.name,
+        teamId: doctor.teamId,
         due: Math.max((doctor.due || 0) - totalAmountReduction, 0),
         totalCases: Math.max((doctor.totalCases || 0) - casesReduction, 0)
       };
