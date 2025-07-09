@@ -101,19 +101,31 @@ export default async ({ req, res, log, error }) => {
     req.headers['x-appwrite-event'].endsWith('update')
   ) {
     const case_ = req.body;
-    // TODO: update the doctor's due
-    // const oldCase = await databases.getDocument(
-    //   DB_ID,
-    //   COLLECTION_CASES,
-    //   case_.$id
-    // );
-    // log(JSON.stringify({ body:req.body }));
 
-    // const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
-    // const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
-    // await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
-    //   due: doctorDue || 0,
-    // });
+    log('Case update event received:', { caseId: case_.$id, doctorId: case_.doctorId });
+
+    // Get initial doctor state
+    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
+    log('Initial doctor state:', { doctorId: doctor.$id, due: doctor.due });
+
+    const doctorDue = doctor.due || 0
+
+    // Log the update we're about to make
+    const updateData = {
+      due: Math.max(doctorDue + case_.due, 0),
+    };
+    log('Updating doctor with:', updateData);
+
+    await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, updateData);
+
+    // Verify the update
+    const updatedDoctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id);
+    log('Doctor state after update:', { doctorId: doctor.$id, due: updatedDoctor.due });
+    log('Before update:', {
+      doctorId: doctor.$id,
+      currentDue: doctorDue,
+      newDue: Math.max(doctorDue + case_.due, 0),
+    });
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When new payment is created:
