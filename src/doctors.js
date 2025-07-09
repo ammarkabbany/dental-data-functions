@@ -130,7 +130,7 @@ export default async ({ req, res, log, error }) => {
     log('Before update:', {
       doctorId: doctor.$id,
       currentDue: doctorDue,
-      newDue: Math.max(doctorDue + due, 0),
+      newDue: Math.max(doctorDue + result, 0),
     });
     return res.json({ success: true, message: 'Doctor updated' });
   }
