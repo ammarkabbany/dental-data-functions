@@ -72,7 +72,8 @@ export default async ({ req, res, log, error }) => {
     const case_ = JSON.parse(req.body);
     // TODO: update the doctor's due
     const oldCase = await databases.getDocument(DB_ID, COLLECTION_CASES, case_.$id);
-    log(JSON.stringify(case_, oldCase))
+    log(JSON.stringify({case_, oldCase}))
+
     // const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
     // const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
     // await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
