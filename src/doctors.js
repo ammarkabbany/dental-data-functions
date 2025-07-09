@@ -57,7 +57,7 @@ export default async ({ req, res, log, error }) => {
   // If the event is update, body = updated case
   // If the event is create, body = new case
 
-  // log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
+  log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
 
   // When new case is created:
   if (
@@ -102,12 +102,12 @@ export default async ({ req, res, log, error }) => {
   ) {
     const case_ = req.body;
     // TODO: update the doctor's due
-    const oldCase = await databases.getDocument(
-      DB_ID,
-      COLLECTION_CASES,
-      case_.$id
-    );
-    log(JSON.stringify({ payload: req.body, oldCase }));
+    // const oldCase = await databases.getDocument(
+    //   DB_ID,
+    //   COLLECTION_CASES,
+    //   case_.$id
+    // );
+    // log(JSON.stringify({ body:req.body }));
 
     // const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
     // const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
