@@ -17,22 +17,29 @@ export default async ({ req, res, log, error }) => {
   //   return res.json({ success: false, message: 'Missing teamId' });
   // }
 
-  if (req.path === "/all") {
-    log('Updating all doctors')
+  if (req.path === '/all') {
+    log('Updating all doctors');
     const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
       Query.limit(1000),
-    ])
+    ]);
     for (const doc of doctors.documents) {
       const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
         Query.equal('doctorId', doc.$id),
         Query.limit(10000),
       ]);
-      const payments = await databases.listDocuments(DB_ID, COLLECTION_PAYMENTS, [
-        Query.equal('doctorId', doc.$id),
-        Query.limit(10000),
-      ]);
-      const casesTotal = cases.documents.reduce((acc, c) => acc + (c.due || 0), 0);
-      const paymentsTotal = payments.documents.reduce((acc, p) => acc + (p.amount || 0), 0);
+      const payments = await databases.listDocuments(
+        DB_ID,
+        COLLECTION_PAYMENTS,
+        [Query.equal('doctorId', doc.$id), Query.limit(10000)]
+      );
+      const casesTotal = cases.documents.reduce(
+        (acc, c) => acc + (c.due || 0),
+        0
+      );
+      const paymentsTotal = payments.documents.reduce(
+        (acc, p) => acc + (p.amount || 0),
+        0
+      );
       const totalDue = Math.max(0, casesTotal - paymentsTotal);
       const totalCases = cases.documents.length;
       // const unpaidCases = cases.documents.filter((c) =>!c.invoice).length;
@@ -53,26 +60,46 @@ export default async ({ req, res, log, error }) => {
   // log(JSON.stringify({headers: req.headers, body: req.body, query: req.query}))
 
   // When new case is created:
-  if (req.headers['x-appwrite-event'].includes(COLLECTION_CASES) && req.headers['x-appwrite-event'].endsWith('create')) {
+  if (
+    req.headers['x-appwrite-event'].includes(COLLECTION_CASES) &&
+    req.headers['x-appwrite-event'].endsWith('create')
+  ) {
     const case_ = req.body;
 
     // // TODO: update the doctor's due
-    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
-    log({doctorDue: doctor.due, doctorCases: doctor.totalCases, caseDue: case_.due})
-    const doctorDue = doctor.due || 0
-    const totalCases = doctor.totalCases || 0
+    const doctor = await databases.getDocument(
+      DB_ID,
+      COLLECTION_DOCTORS,
+      case_.doctorId
+    );
+    const doctorDue = doctor.due || 0;
+    const totalCases = doctor.totalCases || 0;
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
       due: Math.max(doctorDue + case_.due, 0),
       totalCases: totalCases + 1,
     });
+    log('Before update:', {
+      doctorId: doctor.$id,
+      currentTotalCases: totalCases,
+      newTotalCases: totalCases + 1,
+      currentDue: doctorDue,
+      newDue: Math.max(doctorDue + case_.due, 0),
+    });
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When case is updated:
-  if (req.headers['x-appwrite-event'].includes(COLLECTION_CASES) && req.headers['x-appwrite-event'].endsWith('update')) {
+  if (
+    req.headers['x-appwrite-event'].includes(COLLECTION_CASES) &&
+    req.headers['x-appwrite-event'].endsWith('update')
+  ) {
     const case_ = req.body;
     // TODO: update the doctor's due
-    const oldCase = await databases.getDocument(DB_ID, COLLECTION_CASES, case_.$id);
-    log(JSON.stringify({payload: req.body, oldCase}))
+    const oldCase = await databases.getDocument(
+      DB_ID,
+      COLLECTION_CASES,
+      case_.$id
+    );
+    log(JSON.stringify({ payload: req.body, oldCase }));
 
     // const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
     // const doctorDue = Math.max(doctor.due || 0 + case_.due, 0);
@@ -82,10 +109,17 @@ export default async ({ req, res, log, error }) => {
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When new payment is created:
-  if (req.headers.get('x-appwrite-event').includes(COLLECTION_PAYMENTS) && req.headers.get('x-appwrite-event').endsWith('create')) {
+  if (
+    req.headers.get('x-appwrite-event').includes(COLLECTION_PAYMENTS) &&
+    req.headers.get('x-appwrite-event').endsWith('create')
+  ) {
     const payment = JSON.parse(req.body);
     // TODO: update the doctor's due
-    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, payment.doctorId);
+    const doctor = await databases.getDocument(
+      DB_ID,
+      COLLECTION_DOCTORS,
+      payment.doctorId
+    );
     const doctorDue = Math.max(doctor.due || 0 - payment.amount, 0);
     await databases.updateDocument(DB_ID, COLLECTION_DOCTORS, doctor.$id, {
       due: doctorDue || 0,
@@ -97,23 +131,14 @@ export default async ({ req, res, log, error }) => {
     // Fetch all doctors in the team
     const doctors = await databases.listDocuments(DB_ID, COLLECTION_DOCTORS, [
       Query.equal('teamId', teamId),
-      Query.select([
-        '$id',
-        'name',
-        'teamId',
-      ]),
+      Query.select(['$id', 'name', 'teamId']),
       Query.limit(1000),
     ]);
 
     const cases = await databases.listDocuments(DB_ID, COLLECTION_CASES, [
       Query.equal('teamId', teamId),
       // Query.equal('doctorId', doc.$id),
-      Query.select([
-        'doctorId',
-        'due',
-        'invoice',
-        'teamId',
-      ]),
+      Query.select(['doctorId', 'due', 'invoice', 'teamId']),
       // Query.equal('status', 'active'),
       Query.limit(10000),
     ]);
