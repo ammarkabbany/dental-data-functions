@@ -96,23 +96,28 @@ export default async ({ req, res, log, error }) => {
     return res.json({ success: true, message: 'Doctor updated' });
   }
   // When case is updated:
-  if (
-    req.headers['x-appwrite-event'].includes(COLLECTION_CASES) &&
-    req.headers['x-appwrite-event'].endsWith('update')
-  ) {
-    const case_ = req.body;
+  if (req.path === "/update") {
+    const { caseId, doctorId, oldDue, newDue } = JSON.parse(req.body)
 
-    log('Case update event received:', { caseId: case_.$id, doctorId: case_.doctorId });
+    log('Case update event received:', { caseId, doctorId, oldDue, newDue });
+
 
     // Get initial doctor state
-    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, case_.doctorId);
+    const doctor = await databases.getDocument(DB_ID, COLLECTION_DOCTORS, doctorId);
     log('Initial doctor state:', { doctorId: doctor.$id, due: doctor.due });
 
     const doctorDue = doctor.due || 0
 
+    let result = 0;
+    if (newDue < oldDue) {
+      result = -(oldDue - newDue);
+    } else if (newDue > oldDue) {
+      result = newDue - oldDue;
+    }
+
     // Log the update we're about to make
     const updateData = {
-      due: Math.max(doctorDue + case_.due, 0),
+      due: Math.max(doctorDue + result, 0),
     };
     log('Updating doctor with:', updateData);
 
@@ -124,7 +129,7 @@ export default async ({ req, res, log, error }) => {
     log('Before update:', {
       doctorId: doctor.$id,
       currentDue: doctorDue,
-      newDue: Math.max(doctorDue + case_.due, 0),
+      newDue: Math.max(doctorDue + due, 0),
     });
     return res.json({ success: true, message: 'Doctor updated' });
   }
