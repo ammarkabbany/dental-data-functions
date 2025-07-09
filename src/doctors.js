@@ -134,6 +134,40 @@ export default async ({ req, res, log, error }) => {
     });
     return res.json({ success: true, message: 'Doctor updated' });
   }
+  // When case is deleted:
+  if (req.path === "/delete") {
+    const { changes } = JSON.parse(req.body);
+
+    // Get all affected doctors first
+    const uniqueDoctorIds = [...new Set(changes.map(change => change.doctorId))];
+    const doctors = await Promise.all(
+      uniqueDoctorIds.map(id => 
+        databases.getDocument(DB_ID, COLLECTION_DOCTORS, id)
+      )
+    );
+
+    // Calculate updates for each doctor
+    const updates = uniqueDoctorIds.map(doctorId => {
+      const doctor = doctors.find(d => d.$id === doctorId);
+      const doctorChanges = changes.filter(c => c.doctorId === doctorId);
+      
+      const totalAmountReduction = doctorChanges.reduce((sum, change) => sum + change.amount, 0);
+      const casesReduction = doctorChanges.length;
+
+      return {
+        $id: doctorId,
+        due: Math.max((doctor.due || 0) - totalAmountReduction, 0),
+        totalCases: Math.max((doctor.totalCases || 0) - casesReduction, 0)
+      };
+    });
+
+    log('Bulk updating doctors with:', updates);
+
+    // Perform bulk update
+    await databases.updateDocuments(DB_ID, COLLECTION_DOCTORS, updates);
+
+    return res.json({ success: true, message: 'Doctors updated' });
+  }
   // When new payment is created:
   if (
     req.headers.get('x-appwrite-event').includes(COLLECTION_PAYMENTS) &&
