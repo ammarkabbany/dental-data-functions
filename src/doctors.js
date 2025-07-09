@@ -61,6 +61,7 @@ export default async ({ req, res, log, error }) => {
 
   // When new case is created:
   if (
+    req.headers['x-appwrite-event'] &&
     req.headers['x-appwrite-event'].includes(COLLECTION_CASES) &&
     req.headers['x-appwrite-event'].endsWith('create')
   ) {
