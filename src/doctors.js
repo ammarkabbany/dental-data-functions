@@ -164,7 +164,7 @@ export default async ({ req, res, log, error }) => {
     log('Bulk updating doctors with:', updates);
 
     // Perform bulk update
-    await databases.updateDocuments(DB_ID, COLLECTION_DOCTORS, updates);
+    await databases.upsertDocuments(DB_ID, COLLECTION_DOCTORS, updates);
 
     return res.json({ success: true, message: 'Doctors updated' });
   }
